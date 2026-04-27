@@ -7,6 +7,9 @@ export interface AuthUser {
   role: 'student' | 'recruiter' | 'mentor' | 'admin';
   avatarUrl?: string;
   headline?: string;
+  careerGoal?: string;
+  location?: string;
+  resumeUrl?: string;
 }
 
 const authService = {

@@ -19,11 +19,28 @@ const QUICK_ACTIONS = [
   { label: '💡 Project Ideas', mode: 'project_ideas' },
 ];
 
-// Extend window for SpeechRecognition
+// Proper type declarations for Web Speech API (not in all TS lib versions)
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+}
+interface ISpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onstart: (() => void) | null;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onend: (() => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+  start(): void;
+  stop(): void;
+}
 declare global {
   interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
+    SpeechRecognition: new () => ISpeechRecognition;
+    webkitSpeechRecognition: new () => ISpeechRecognition;
   }
 }
 
@@ -43,7 +60,7 @@ const AiJarvisPanel: React.FC = () => {
   const [orbState, setOrbState] = useState<'idle' | 'listening' | 'thinking' | 'speaking'>('idle');
 
   const bottomRef = useRef<HTMLDivElement>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<ISpeechRecognition | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
 
   // Check browser support
@@ -96,14 +113,14 @@ const AiJarvisPanel: React.FC = () => {
     recognition.lang = 'en-US';
 
     recognition.onstart = () => { setIsListening(true); setOrbState('listening'); };
-    recognition.onresult = (event) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       const transcript = Array.from(event.results)
-        .map((r) => r[0].transcript)
+        .map((r: SpeechRecognitionResult) => r[0].transcript)
         .join('');
       setInput(transcript);
     };
     recognition.onend = () => { setIsListening(false); setOrbState('idle'); };
-    recognition.onerror = (e) => {
+    recognition.onerror = (e: SpeechRecognitionErrorEvent) => {
       setIsListening(false);
       setOrbState('idle');
       if (e.error !== 'no-speech') toast.error('Voice recognition error. Please try again.');
