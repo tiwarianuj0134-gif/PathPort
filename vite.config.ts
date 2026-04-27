@@ -41,8 +41,11 @@ function autoStartBackend() {
   };
 }
 
+// Only auto-start backend in local dev, not during CI/Vercel builds
+const isDev = process.env.NODE_ENV !== 'production';
+
 export default defineConfig({
-  plugins: [react(), autoStartBackend()],
+  plugins: [react(), ...(isDev ? [autoStartBackend()] : [])],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),

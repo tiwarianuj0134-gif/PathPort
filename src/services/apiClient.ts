@@ -1,8 +1,12 @@
 import axios from 'axios';
 
+// In production (Vercel/Netlify), set VITE_API_BASE_URL to your Render backend URL.
+// e.g. VITE_API_BASE_URL=https://pathport-backend.onrender.com/api
+// In local dev, falls back to '/api' which Vite proxies to localhost:5000
+const baseURL = import.meta.env.VITE_API_BASE_URL || '/api';
+
 const apiClient = axios.create({
-  // Vite proxy forwards /api → http://localhost:5000 — no CORS issues
-  baseURL: '/api',
+  baseURL,
   withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
   timeout: 15000,
