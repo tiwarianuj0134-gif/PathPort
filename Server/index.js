@@ -1,4 +1,3 @@
-// Load .env from Server/ directory regardless of where this file is run from
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
@@ -15,10 +14,14 @@ const { healthCheck } = require('./src/controllers/mainControllers');
 
 const app = express();
 
-app.use(helmet());
+// Trust proxy (needed on Render/Heroku for secure cookies)
+app.set('trust proxy', 1);
 
-// Support multiple allowed origins via CLIENT_ORIGIN (comma-separated in .env)
-// e.g. CLIENT_ORIGIN=https://pathport.vercel.app,https://pathport-staging.vercel.app
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
+
+// Build allowed origins list from env
 const allowedOrigins = [
   ...CLIENT_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean),
   'http://localhost:5173',
@@ -30,14 +33,28 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (mobile apps, curl, Postman)
       if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) return callback(null, true);
+      console.warn(`CORS blocked: ${origin}`);
       callback(new Error(`CORS: origin ${origin} not allowed`));
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
+
+// Handle preflight for all routes
+app.options('*', cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -65,6 +82,5 @@ connectDB()
   .then(startServer)
   .catch((err) => {
     console.error('\n? MongoDB connection failed:', err.message);
-    console.error('\n??  FIX: Go to MongoDB Atlas ? Network Access ? Add 0.0.0.0/0\n');
-    startServer(); // start anyway so frontend shows proper error
+    startServer();
   });

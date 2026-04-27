@@ -1,22 +1,21 @@
 import axios from 'axios';
 
-// In production (Vercel/Netlify), set VITE_API_BASE_URL to your Render backend URL.
-// e.g. VITE_API_BASE_URL=https://pathport-backend.onrender.com/api
-// In local dev, falls back to '/api' which Vite proxies to localhost:5000
+// In production (Vercel), VITE_API_BASE_URL points to Render backend.
+// In local dev, falls back to '/api' which Vite proxies to localhost:5000.
 const baseURL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 const apiClient = axios.create({
   baseURL,
   withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
-  timeout: 15000,
+  timeout: 30000, // 30s — Render free tier cold start can take ~20s
 });
 
 // Surface error messages cleanly
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Network error — backend unreachable
+    // Network error — backend cold starting or unreachable
     if (!error.response) {
       return Promise.reject(
         new Error('Cannot connect to server. Please try again in a moment.')
