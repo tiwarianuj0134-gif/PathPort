@@ -16,10 +16,10 @@ const apiClient = axios.create({
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Network error — backend not running
+    // Network error — backend unreachable
     if (!error.response) {
       return Promise.reject(
-        new Error('Cannot connect to server. Make sure the backend is running on port 5000.')
+        new Error('Cannot connect to server. Please try again in a moment.')
       );
     }
 
