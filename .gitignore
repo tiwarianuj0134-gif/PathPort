@@ -2,7 +2,10 @@ node_modules/
 Server/node_modules/
 .env
 Server/.env
-dist/
+dist
+# Large binary files in docs
+docs/*.mp4
+docs/*.zip/
 build/
 .DS_Store
 node_modules
