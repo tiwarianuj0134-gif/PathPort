@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Box, Typography, Button, Container, Grid, Card, CardContent, Chip,
+  Popover, List, ListItemButton, ListItemIcon, ListItemText,
 } from '@mui/material';
-import { AccountTree, Folder, SmartToy, TrendingUp, ArrowForward, CheckCircle } from '@mui/icons-material';
+import { AccountTree, Folder, SmartToy, TrendingUp, ArrowForward, CheckCircle, WhatsApp, Email } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
 const features = [
@@ -47,6 +48,7 @@ const testimonials = [
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const heroRef = useRef<HTMLDivElement>(null);
+  const [contactAnchor, setContactAnchor] = useState<HTMLElement | null>(null);
 
   // Parallax effect on scroll
   useEffect(() => {
@@ -261,10 +263,95 @@ const LandingPage: React.FC = () => {
       </Box>
 
       {/* Footer */}
-      <Box sx={{ py: 3, textAlign: 'center', borderTop: '1px solid rgba(26,115,232,0.1)' }}>
-        <Typography variant="body2" color="text.disabled">
-          © 2024 PathPort · Not just a profile. Your proof of growth.
+      <Box sx={{ py: 4, textAlign: 'center', borderTop: '1px solid rgba(26,115,232,0.1)' }}>
+        <Typography variant="body2" color="text.disabled" sx={{ mb: 0.5, letterSpacing: '0.03em' }}>
+          © {new Date().getFullYear()} PathPort · Not just a profile. Your proof of growth.
         </Typography>
+        <Typography variant="body2" sx={{ color: 'rgba(138,163,200,0.6)', letterSpacing: '0.04em' }}>
+          Crafted with precision by{' '}
+          <Box
+            component="span"
+            onClick={(e: React.MouseEvent<HTMLElement>) => setContactAnchor(e.currentTarget)}
+            sx={{
+              color: '#1a73e8',
+              fontWeight: 600,
+              cursor: 'pointer',
+              position: 'relative',
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                bottom: -1,
+                left: 0,
+                width: '100%',
+                height: '1px',
+                background: 'linear-gradient(90deg, #1a73e8, #00d4ff)',
+                transform: 'scaleX(0)',
+                transformOrigin: 'left',
+                transition: 'transform 0.3s ease',
+              },
+              '&:hover::after': { transform: 'scaleX(1)' },
+              '&:hover': { color: '#00d4ff' },
+              transition: 'color 0.2s ease',
+            }}
+          >
+            Anuj Tiwari
+          </Box>
+        </Typography>
+
+        {/* Contact Popover */}
+        <Popover
+          open={Boolean(contactAnchor)}
+          anchorEl={contactAnchor}
+          onClose={() => setContactAnchor(null)}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          transformOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          PaperProps={{
+            sx: {
+              background: 'linear-gradient(135deg, #0d1b2e, #0a1628)',
+              border: '1px solid rgba(26,115,232,0.3)',
+              borderRadius: 2,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+              minWidth: 220,
+              overflow: 'hidden',
+            },
+          }}
+        >
+          <Box sx={{ px: 2, pt: 1.5, pb: 0.5 }}>
+            <Typography variant="caption" sx={{ color: '#8aa3c8', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>
+              Connect with Anuj
+            </Typography>
+          </Box>
+          <List dense disablePadding sx={{ pb: 1 }}>
+            <ListItemButton
+              onClick={() => { window.open('https://wa.me/7607768611', '_blank'); setContactAnchor(null); }}
+              sx={{ px: 2, py: 1, '&:hover': { background: 'rgba(37,211,102,0.08)' } }}
+            >
+              <ListItemIcon sx={{ minWidth: 36 }}>
+                <WhatsApp sx={{ color: '#25D366', fontSize: 20 }} />
+              </ListItemIcon>
+              <ListItemText
+                primary="Chat on WhatsApp"
+                secondary="7607768611"
+                primaryTypographyProps={{ fontSize: '0.875rem', color: '#e0e8f0', fontWeight: 500 }}
+                secondaryTypographyProps={{ fontSize: '0.75rem', color: '#8aa3c8' }}
+              />
+            </ListItemButton>
+            <ListItemButton
+              onClick={() => { window.open('mailto:anuj.tiwari@universalai.in', '_blank'); setContactAnchor(null); }}
+              sx={{ px: 2, py: 1, '&:hover': { background: 'rgba(26,115,232,0.08)' } }}
+            >
+              <ListItemIcon sx={{ minWidth: 36 }}>
+                <Email sx={{ color: '#1a73e8', fontSize: 20 }} />
+              </ListItemIcon>
+              <ListItemText
+                primary="Send an Email"
+                secondary="anuj.tiwari@universalai.in"
+                primaryTypographyProps={{ fontSize: '0.875rem', color: '#e0e8f0', fontWeight: 500 }}
+                secondaryTypographyProps={{ fontSize: '0.75rem', color: '#8aa3c8' }}
+              />
+            </ListItemButton>
+          </List>
+        </Popover>
       </Box>
     </Box>
   );
