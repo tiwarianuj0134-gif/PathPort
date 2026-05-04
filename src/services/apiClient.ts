@@ -1,43 +1,42 @@
 import axios from 'axios';
 
-// In production (Vercel), VITE_API_BASE_URL points to Render backend.
-// In local dev, falls back to '/api' which Vite proxies to localhost:5000.
 const baseURL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 const apiClient = axios.create({
   baseURL,
   withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
-  timeout: 30000, // 30s — Render free tier cold start can take ~20s
+  timeout: 30000,
 });
 
-// Surface error messages cleanly
+// On every request, attach token from localStorage as Bearer header
+// This is the cross-origin fallback when cookies don't work (Vercel → Render)
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('pp_token');
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  return config;
+});
+
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Network error — backend cold starting or unreachable
     if (!error.response) {
       return Promise.reject(
         new Error('Cannot connect to server. Please try again in a moment.')
       );
     }
-
-    // 503 — MongoDB unavailable
     if (error.response.status === 503) {
       return Promise.reject(
-        new Error(
-          'Database unavailable. Please whitelist your IP in MongoDB Atlas: ' +
-          'Atlas → Network Access → Add IP → Allow Access from Anywhere (0.0.0.0/0)'
-        )
+        new Error('Database unavailable. Please whitelist your IP in MongoDB Atlas.')
       );
     }
-
     const message =
       error.response?.data?.message ||
       error.response?.data?.errors?.[0]?.msg ||
       error.message ||
       'Something went wrong.';
-
     return Promise.reject(new Error(message));
   }
 );

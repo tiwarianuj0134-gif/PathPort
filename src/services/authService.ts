@@ -12,18 +12,30 @@ export interface AuthUser {
   resumeUrl?: string;
 }
 
+// Store token response from login/register
+interface AuthResponse extends AuthUser {
+  token?: string;
+}
+
+const saveToken = (data: AuthResponse) => {
+  if (data.token) localStorage.setItem('pp_token', data.token);
+};
+
 const authService = {
   register: async (data: { name: string; email: string; password: string; role: string }) => {
-    const res = await apiClient.post<AuthUser>('/auth/register', data);
-    return res.data;
+    const res = await apiClient.post<AuthResponse>('/auth/register', data);
+    saveToken(res.data);
+    return res.data as AuthUser;
   },
 
   login: async (data: { email: string; password: string }) => {
-    const res = await apiClient.post<AuthUser>('/auth/login', data);
-    return res.data;
+    const res = await apiClient.post<AuthResponse>('/auth/login', data);
+    saveToken(res.data);
+    return res.data as AuthUser;
   },
 
   logout: async () => {
+    localStorage.removeItem('pp_token');
     await apiClient.post('/auth/logout');
   },
 
